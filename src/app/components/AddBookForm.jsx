@@ -9,17 +9,15 @@ import {
   Button,
 } from "@mui/material";
 import React, { useState } from "react";
-import { db } from "../../../firebase";
-import { collection, addDoc } from "firebase/firestore";
-import { useUser } from "@clerk/clerk-react";
 import "../css/styles.css";
+import addBookToLibrary from "../api/routes/addBook";
+import { useUser } from "@clerk/nextjs";
 
 const AddBookForm = () => {
+  const { user } = useUser();
   const [bookForms, setBookForms] = useState([
     { title: "", author: "", genre: "", rating: 0 },
   ]);
-
-  const { user } = useUser();
 
   const handleInputChange = (index, e) => {
     const { name, value } = e.target;
@@ -45,34 +43,18 @@ const AddBookForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) {
+    if (!user || !user.id) {
       console.error("User not authenticated");
       return;
     }
 
-    const userId = user.id;
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      console.log("Books Data Submitted:", bookForms);
-    };
-
     try {
-      await Promise.all(
-        bookForms.map(async (book) => {
-          await addDoc(collection(db, "books"), {
-            userId: userId,
-            title: book.title,
-            author: book.author,
-            genre: book.genre,
-            rating: book.rating,
-          });
-          console.log("Book data submitted to firestore");
-        })
-      );
+      await addBookToLibrary(user.id, bookForms);
     } catch (err) {
-      console.error("Error adding document: ", err);
+      console.error("Error adding books to library:", err);
     }
   };
+
   return (
     <Container
       maxWidth="false"
