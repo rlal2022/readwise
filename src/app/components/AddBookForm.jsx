@@ -9,12 +9,17 @@ import {
   Button,
 } from "@mui/material";
 import React, { useState } from "react";
+import { db } from "../../../firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { useUser } from "@clerk/clerk-react";
 import "../css/styles.css";
 
 const AddBookForm = () => {
   const [bookForms, setBookForms] = useState([
     { title: "", author: "", genre: "", rating: 0 },
   ]);
+
+  const { user } = useUser();
 
   const handleInputChange = (index, e) => {
     const { name, value } = e.target;
@@ -38,11 +43,36 @@ const AddBookForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Books Data Submitted:", bookForms);
-  };
+    if (!user) {
+      console.error("User not authenticated");
+      return;
+    }
 
+    const userId = user.id;
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      console.log("Books Data Submitted:", bookForms);
+    };
+
+    try {
+      await Promise.all(
+        bookForms.map(async (book) => {
+          await addDoc(collection(db, "books"), {
+            userId: userId,
+            title: book.title,
+            author: book.author,
+            genre: book.genre,
+            rating: book.rating,
+          });
+          console.log("Book data submitted to firestore");
+        })
+      );
+    } catch (err) {
+      console.error("Error adding document: ", err);
+    }
+  };
   return (
     <Container
       maxWidth="false"
