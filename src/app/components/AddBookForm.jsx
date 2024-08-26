@@ -44,6 +44,7 @@ const AddBookForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || !user.id) {
+      console.log(user);
       console.error("User not authenticated");
       return;
     }

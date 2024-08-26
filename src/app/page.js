@@ -4,15 +4,17 @@ import "./css/globals.css";
 import Hero from "./components/Hero";
 import AddBookForm from "./components/AddBookForm";
 import searchBooks from "./api/routes/searchBooks";
+import Library from "./components/Library";
 
 export default function Home() {
   return (
     <>
-      <Container>
+      <Container maxWidth="false">
         <NavBar />
         {/* <Hero /> */}
         <AddBookForm />
-        <searchBooks />
+        <Library />
+        {/* <searchBooks /> */}
       </Container>
     </>
   );

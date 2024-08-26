@@ -1,20 +1,29 @@
-"use client";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 
-import { useAuth } from "@clerk/nextjs";
-import { collection, query, getDocs, getFirestore } from "firebase/firestore";
-
-export const FetchUserBooks = async () => {
-  const { user } = useAuth();
-
-  if (!user) return [];
+const fetchUserBooks = async (userId) => {
+  if (!userId) {
+    console.error("User ID is not provided");
+    return [];
+  }
 
   const db = getFirestore();
-  const q = query(collection(db, "users", user, id, "books"));
-  const querySnapshot = await getDocs(q);
+  const docRef = doc(collection(db, "users"), userId);
+  const docSnap = await getDoc(docRef);
 
-  const books = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  return books;
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    const collections = data.books || [];
+    return collections;
+  } else {
+    await setDoc(docRef, { books: [] });
+    return [];
+  }
 };
+
+export default fetchUserBooks;
