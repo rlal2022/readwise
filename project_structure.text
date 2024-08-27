@@ -1,0 +1,53 @@
+- .env.local
+- .eslintrc.json
+- .gitignore
+- docs
+  - .project_structure_ignore
+- firebase.js
+- jsconfig.json
+- next-env.d.ts
+- next.config.mjs
+- package-lock.json
+- package.json
+- public
+  - next.svg
+  - vercel.svg
+- README.md
+- src
+  - app
+    - api
+      - generate
+        - route.js
+      - routes
+        - addBook.js
+        - fetchBookCover.js
+        - fetchUserBooks.js
+        - searchBooks.js
+    - assets
+      - icon-old.png
+      - icon.png
+    - components
+      - AddBookForm.jsx
+      - Footer.jsx
+      - Hero.jsx
+      - HowItWorks.jsx
+      - Library.jsx
+      - NavBar.jsx
+      - TrendingBooks.jsx
+    - css
+      - globals.css
+      - styles.css
+    - favicon.ico
+    - layout.js
+    - middleware.ts
+    - page.module.css
+    - pages
+      - index.js
+      - library.js
+    - sign-in
+      - page.js
+      - [[...sign-in]]
+    - sign-up
+      - [[...sign-up]]
+        - page.js
+- tsconfig.json

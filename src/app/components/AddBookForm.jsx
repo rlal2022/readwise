@@ -57,15 +57,15 @@ const AddBookForm = () => {
   };
 
   return (
-    <Container
-      maxWidth="false"
-      sx={{
-        mt: "200px",
-      }}
-    >
+    <Container maxWidth="md" sx={{ marginTop: "100px", marginBottom: "50px" }}>
       <Typography
-        variant="h5"
-        sx={{ mb: "1rem", color: "#463f3a", fontWeight: "bold" }}
+        variant="h3"
+        sx={{
+          mb: "1rem",
+          color: "#463f3a",
+          fontWeight: "bold",
+          textAlign: "center",
+        }}
       >
         Add a book to your library
       </Typography>

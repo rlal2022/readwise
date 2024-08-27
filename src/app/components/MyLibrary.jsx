@@ -22,7 +22,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-const Library = () => {
+const MyLibrary = () => {
   const { isLoaded, isSignedIn, user } = useUser();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +99,7 @@ const Library = () => {
       const booksWithCovers = await Promise.all(
         data.map(async (book) => {
           const cover = await fetchBookCover(book.title, book.author, book.id);
-          return { ...book, cover: cover || "/placeholder-image-url.jpg" };
+          return { ...book, cover: cover || "../assets/cover.png" };
         })
       );
 
@@ -148,7 +148,7 @@ const Library = () => {
   }
 
   return (
-    <Container maxWidth="100%">
+    <Container maxWidth="100%" sx={{ height: "100%", mb: "3rem" }}>
       <Typography
         variant="h2"
         sx={{
@@ -192,7 +192,7 @@ const Library = () => {
                     <Box
                       sx={{
                         color: "#fff",
-                        bgcolor: "#463f3a",
+                        bgcolor: "#faedcd",
                         perspective: "1000px",
                         position: "relative",
                         width: "100%",
@@ -215,6 +215,7 @@ const Library = () => {
                       >
                         <div
                           style={{
+                            bgcolor: "transparent",
                             position: "absolute",
                             width: "100%",
                             height: "100%",
@@ -224,7 +225,6 @@ const Library = () => {
                             alignItems: "center",
                             padding: "16px",
                             boxSizing: "border-box",
-
                             backgroundColor: "#ffffff",
                           }}
                         >
@@ -326,4 +326,4 @@ const Library = () => {
   );
 };
 
-export default Library;
+export default MyLibrary;

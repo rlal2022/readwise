@@ -7,7 +7,6 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import Link from "next/link";
 import React from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
 
