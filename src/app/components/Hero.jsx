@@ -7,7 +7,7 @@ const Hero = () => {
       maxWidth="lg"
       sx={{
         mt: "200px",
-        color: "#d4a373",
+        color: "#A5A58D",
       }}
     >
       <Box
@@ -22,7 +22,7 @@ const Hero = () => {
       >
         {/* <img src="./assets/icon.png" /> */}
 
-        <Typography sx={{ fontSize: "60px" }}>
+        <Typography sx={{ fontSize: "60px", fontWeight: 700 }}>
           Your Personalized Book Discovery
         </Typography>
         <Typography variant="h4">

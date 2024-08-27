@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { Margin } from "@mui/icons-material";
 
 export const NavBar = () => {
   const { user } = useUser();
