@@ -7,10 +7,11 @@ import {
   Button,
   Box,
 } from "@mui/material";
+import Link from "next/link";
 import React from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
 
-export const NavBar = () => {
+const NavBar = () => {
   const { user } = useUser();
 
   return (
@@ -33,16 +34,17 @@ export const NavBar = () => {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "center",
-              alignContent: "center",
               alignItems: "center",
             }}
           >
             <img
-              src="../assets/icon.png"
+              src="/assets/icon.png"
               style={{ width: "50px", height: "50px" }}
+              alt="ReadWise Logo"
             />
-            <Typography>ReadWise</Typography>
+            <Typography variant="h6" sx={{ marginLeft: 1 }}>
+              ReadWise
+            </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -73,3 +75,5 @@ export const NavBar = () => {
     </Container>
   );
 };
+
+export default NavBar;
