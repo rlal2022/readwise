@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { db } from "../../../firebase";
 import {
   Container,
@@ -10,14 +10,24 @@ import {
   Card,
   CircularProgress,
   Box,
+  Button,
+  CardActionArea,
+  CardMedia,
 } from "@mui/material";
-import { collection, getDocs, doc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
 const Library = () => {
-  const { userId } = useAuth();
+  const { isLoaded, isSignedIn, user } = useUser();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [flipped, setFlipped] = useState({});
 
   const fetchBookCover = async (title, author, bookId) => {
     try {
@@ -31,7 +41,10 @@ const Library = () => {
 
       if (data.totalItems > 0) {
         const book = data.items[0];
-        const cover = book.volumeInfo.imageLinks?.thumbnail || null;
+        const cover =
+          book.volumeInfo.imageLinks?.mediumThumbnail ||
+          book.volumeInfo.imageLinks?.thumbnail ||
+          null;
         if (cover) {
           await updateBookCoverInFirebase(bookId, cover);
         }
@@ -45,9 +58,19 @@ const Library = () => {
     }
   };
 
+  const handleDeleteBook = async (bookId) => {
+    try {
+      const bookRef = doc(db, `users/${user.id}/library`, bookId);
+      await deleteDoc(bookRef);
+      setBooks(books.filter((book) => book.id !== bookId));
+    } catch (error) {
+      console.error("Error deleting book: ", error);
+    }
+  };
+
   const updateBookCoverInFirebase = async (bookId, coverUrl) => {
     try {
-      const bookRef = doc(db, `users/${userId}/library`, bookId);
+      const bookRef = doc(db, `users/${user.id}/library`, bookId);
       await setDoc(bookRef, { cover: coverUrl }, { merge: true });
     } catch (err) {
       console.error("Error updating book cover in Firebase:", err);
@@ -55,12 +78,14 @@ const Library = () => {
   };
 
   async function fetchBooks() {
-    // if (!userId) {
-    //   setError("User not authenticated");
-    //   console.log(user, userId);
-    //   setLoading(false);
-    //   return [];
-    // }
+    if (!isSignedIn) {
+      setError("User not authenticated");
+      console.log("user: ", user);
+      setLoading(false);
+      return [];
+    }
+
+    const userId = user.id;
 
     try {
       const librarySnapshot = await getDocs(
@@ -71,7 +96,6 @@ const Library = () => {
         ...doc.data(),
       }));
 
-      // Fetch cover images for each book
       const booksWithCovers = await Promise.all(
         data.map(async (book) => {
           const cover = await fetchBookCover(book.title, book.author, book.id);
@@ -93,8 +117,17 @@ const Library = () => {
       setBooks(data);
       setLoading(false);
     }
-    getBooks();
-  }, [userId]);
+    if (isLoaded) {
+      getBooks();
+    }
+  }, [isLoaded, isSignedIn]);
+
+  const handleCardClick = (index) => {
+    setFlipped((prevFlipped) => ({
+      ...prevFlipped,
+      [index]: !prevFlipped[index],
+    }));
+  };
 
   if (loading) {
     return (
@@ -115,12 +148,12 @@ const Library = () => {
   }
 
   return (
-    <Container maxWidth="100%" sx={{ border: "1px solid red" }}>
+    <Container maxWidth="100%">
       <Typography
         variant="h2"
         sx={{
-          color: "#fefae0",
-          mb: "20px",
+          color: "#463f3a",
+          mb: "50px",
           fontWeight: "bold",
           textAlign: "center",
         }}
@@ -135,68 +168,158 @@ const Library = () => {
         }}
       >
         {books.length > 0 ? (
-          books.map((book, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <Card
+          <Grid container spacing={2}>
+            {books.map((book, index) => (
+              <Grid
+                item
+                xs={12}
+                md={3}
+                key={index}
                 sx={{
-                  bgcolor: "#6b705c",
                   display: "flex",
-                  flexDirection: "row",
-                  width: "400px",
-                  height: "300px",
-                  boxShadow: `-webkit-box-shadow: 0px 10px 50px -3px rgba(0,0,0,1);
--moz-box-shadow: 0px 10px 50px -3px rgba(0,0,0,1);
-box-shadow: 0px 10px 50px -3px rgba(0,0,0,1);`,
+                  justifyContent: "center",
+                  alignContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <img
-                  src={book.cover}
-                  alt={book.title}
-                  style={{ width: "200px", height: "auto" }}
-                />
-                <Box ml={2}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#fefae0",
-                    }}
-                  >
-                    {book.title}
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#fefae0",
-                    }}
-                  >
-                    {book.author}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#fefae0",
-                    }}
-                  >
-                    {book.genre}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#fefae0",
-                    }}
-                  >
-                    Rating: {book.rating}
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-          ))
+                <Card
+                  sx={{
+                    width: "200px",
+                    height: "300px",
+                  }}
+                >
+                  <CardActionArea onClick={() => handleCardClick(index)}>
+                    <Box
+                      sx={{
+                        color: "#fff",
+                        bgcolor: "#463f3a",
+                        perspective: "1000px",
+                        position: "relative",
+                        width: "100%",
+                        height: "300px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          transition: "transform 0.6s",
+                          transformStyle: "preserve-3d",
+                          position: "relative",
+                          width: "100%",
+                          height: "100%",
+                          boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)",
+                          transform: flipped[index]
+                            ? "rotateY(180deg)"
+                            : "rotateY(0deg)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: "absolute",
+                            width: "100%",
+                            height: "100%",
+                            backfaceVisibility: "hidden",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: "16px",
+                            boxSizing: "border-box",
+
+                            backgroundColor: "#ffffff",
+                          }}
+                        >
+                          <CardMedia>
+                            <img
+                              src={book.cover}
+                              alt={book.title}
+                              style={{ width: "200px", height: "auto" }}
+                            />
+                          </CardMedia>
+                        </div>
+                        <div
+                          style={{
+                            position: "absolute",
+                            width: "100%",
+                            height: "100%",
+                            backfaceVisibility: "hidden",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: "16px",
+                            boxSizing: "border-box",
+                            backgroundColor: "#6b705c",
+                            transform: "rotateY(180deg)",
+                          }}
+                        >
+                          <Box>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: "bold",
+                                color: "#fefae0",
+                              }}
+                            >
+                              {book.title}
+                            </Typography>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
+                                fontWeight: "bold",
+                                color: "#fefae0",
+                              }}
+                            >
+                              Author: {book.author}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: "bold",
+                                color: "#fefae0",
+                              }}
+                            >
+                              Genre: {book.genre}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: "bold",
+                                color: "#fefae0",
+                              }}
+                            >
+                              Rating: {book.rating}
+                            </Typography>
+                            <Button
+                              onClick={() => {
+                                handleDeleteBook(book.id);
+                              }}
+                              sx={{
+                                mt: "10px",
+                                color: "#fff",
+                                bgcolor: "#0496ff",
+                                "&:hover": {
+                                  color: "#fff",
+                                  bgcolor: "#008ff5",
+                                },
+                              }}
+                            >
+                              Delete Book
+                            </Button>
+                          </Box>
+                        </div>
+                      </div>
+                    </Box>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : (
-          <Typography variant="body1">No books in your library</Typography>
+          <Typography
+            variant="h5"
+            sx={{ color: "#fefae0", textAlign: "center" }}
+          >
+            No books found.
+          </Typography>
         )}
       </Grid>
     </Container>

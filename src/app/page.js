@@ -4,6 +4,8 @@ import "./css/globals.css";
 import Hero from "./components/Hero";
 import AddBookForm from "./components/AddBookForm";
 import searchBooks from "./api/routes/searchBooks";
+import TestCard from "./components/TestCard";
+
 import Library from "./components/Library";
 
 export default function Home() {
@@ -15,6 +17,7 @@ export default function Home() {
         <AddBookForm />
         <Library />
         {/* <searchBooks /> */}
+        {/* <TestCard /> */}
       </Container>
     </>
   );
