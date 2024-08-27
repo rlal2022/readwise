@@ -7,9 +7,7 @@ const Hero = () => {
       maxWidth="lg"
       sx={{
         mt: "200px",
-
-        color: "#fff",
-        border: "1px solid red",
+        color: "#d4a373",
       }}
     >
       <Box
@@ -19,11 +17,17 @@ const Hero = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          border: "1px solid blue",
+          textAlign: "center",
         }}
       >
+        {/* <img src="./assets/icon.png" /> */}
+
         <Typography sx={{ fontSize: "60px" }}>
-          Find your next favorite book with us
+          Your Personalized Book Discovery
+        </Typography>
+        <Typography variant="h4">
+          Add, rate, and discover books with the help of AI for smarter, more
+          personalized book suggestions.
         </Typography>
         <Button
           sx={{
@@ -32,6 +36,7 @@ const Hero = () => {
             width: "200px",
             height: "50px",
             fontSize: "24px",
+            marginTop: "20px",
             "&:hover": {
               bgcolor: "#757b65",
             },
