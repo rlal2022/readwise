@@ -21,7 +21,6 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/router";
 import { db } from "../../../firebase";
 
 const Recommendations = () => {

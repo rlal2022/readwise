@@ -44,7 +44,7 @@ export async function POST(req) {
   try {
     const data = await req.json();
     const userId = req.headers.get("user-id");
-    console.log("Data received from client:", data); // Log data
+    // console.log("Data received from client:", data);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -59,7 +59,7 @@ export async function POST(req) {
       completion.choices[0].message.content
     ).recommendations;
 
-    console.log("Recommendations from OpenAI:", recommendations); // Log recommendations
+    // console.log("Recommendations from OpenAI:", recommendations);
 
     for (const rec of recommendations) {
       const coverUrl = await fetchBookCover(rec.title, rec.author);

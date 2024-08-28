@@ -26,7 +26,6 @@ const Footer = () => {
           alignItems: "flex-start",
         }}
       >
-        {/* Logo and Text */}
         <Box
           sx={{
             flex: 1,
@@ -60,7 +59,6 @@ const Footer = () => {
           </Box>
         </Box>
 
-        {/* Quick Links */}
         <Box
           sx={{
             flex: 1,
@@ -138,7 +136,6 @@ const Footer = () => {
           </Link>
         </Box>
 
-        {/* Follow Us */}
         <Box
           sx={{
             flex: 1,
@@ -182,7 +179,6 @@ const Footer = () => {
         </Box>
       </Box>
 
-      {/* Copyright */}
       <Box mt={4} textAlign="center">
         <Typography variant="body2" sx={{ color: "#fefae0" }}>
           &copy; {new Date().getFullYear()} ReadWise. All rights reserved.

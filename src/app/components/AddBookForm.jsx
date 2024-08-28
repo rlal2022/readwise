@@ -9,7 +9,6 @@ import {
   Button,
 } from "@mui/material";
 import React, { useState } from "react";
-import "../css/styles.css";
 import addBookToLibrary from "../api/routes/addBook";
 import { useUser } from "@clerk/nextjs";
 
