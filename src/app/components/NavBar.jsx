@@ -53,9 +53,13 @@ const NavBar = () => {
             <Button color="inherit" href="/library">
               {user ? "My Library" : "Books"}
             </Button>
+            <Button color="inherit" href="/recommendations">
+              Recommendations
+            </Button>
             <Button color="inherit" href="/contact">
               Contact
             </Button>
+
             {!user ? (
               <>
                 <Button color="inherit" href="/sign-in">

@@ -8,6 +8,8 @@ const Hero = () => {
       sx={{
         mt: "200px",
         color: "#A5A58D",
+        height: "100%",
+        mb: "100px",
       }}
     >
       <Box
@@ -20,8 +22,6 @@ const Hero = () => {
           textAlign: "center",
         }}
       >
-        {/* <img src="./assets/icon.png" /> */}
-
         <Typography sx={{ fontSize: "60px", fontWeight: 700 }}>
           Your Personalized Book Discovery
         </Typography>

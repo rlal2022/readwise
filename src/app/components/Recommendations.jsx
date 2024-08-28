@@ -1,126 +1,97 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { db } from "../../../firebase";
 import {
   Container,
-  Typography,
-  Grid,
-  Card,
-  CircularProgress,
   Box,
-  Button,
-  CardActionArea,
+  Typography,
+  Card,
   CardMedia,
+  CardActionArea,
+  Grid,
+  Button,
+  CircularProgress,
 } from "@mui/material";
 import {
   collection,
   getDocs,
   doc,
   setDoc,
+  getDoc,
   deleteDoc,
 } from "firebase/firestore";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/router";
+import { db } from "../../../firebase";
 
-const MyLibrary = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const [books, setBooks] = useState([]);
+const Recommendations = () => {
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [flipped, setFlipped] = useState({});
+  const { user } = useUser();
 
-  const fetchBookCover = async (title, author, bookId) => {
+  const getRecommendations = async () => {
+    if (!user) return;
+
+    const recommendationsCollectionRef = collection(
+      db,
+      `users/${user.id}/recommendations`
+    );
+    const recommendationsSnapshot = await getDocs(recommendationsCollectionRef);
+
+    const fetchedRecommendations = [];
+    recommendationsSnapshot.forEach((doc) => {
+      fetchedRecommendations.push({ id: doc.id, ...doc.data() });
+    });
+
+    setRecommendations(fetchedRecommendations);
+    setLoading(false);
+  };
+
+  const generateRecommendations = async () => {
     try {
-      const query = `${title} ${author}`;
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          query
-        )}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
-      );
-      const data = await response.json();
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "user-id": user.id,
+        },
+        body: JSON.stringify({}),
+      });
 
-      if (data.totalItems > 0) {
-        const book = data.items[0];
-        const cover =
-          book.volumeInfo.imageLinks?.mediumThumbnail ||
-          book.volumeInfo.imageLinks?.thumbnail ||
-          null;
-        if (cover) {
-          await updateBookCoverInFirebase(bookId, cover);
-        }
-        return cover;
+      if (response.ok) {
+        await getRecommendations();
       } else {
-        return null;
+        console.error("Failed to generate recommendations.");
       }
-    } catch (err) {
-      console.error("Error fetching book cover:", err);
-      return null;
-    }
-  };
-
-  const handleDeleteBook = async (bookId) => {
-    try {
-      const bookRef = doc(db, `users/${user.id}/library`, bookId);
-      await deleteDoc(bookRef);
-      setBooks(books.filter((book) => book.id !== bookId));
     } catch (error) {
-      console.error("Error deleting book: ", error);
+      console.error("Error generating recommendations:", error);
     }
   };
 
-  const updateBookCoverInFirebase = async (bookId, coverUrl) => {
-    try {
-      const bookRef = doc(db, `users/${user.id}/library`, bookId);
-      await setDoc(bookRef, { cover: coverUrl }, { merge: true });
-    } catch (err) {
-      console.error("Error updating book cover in Firebase:", err);
+  const checkAndGenerateRecommendations = async () => {
+    const userDocRef = doc(db, `users/${user.id}`);
+    const userDoc = await getDoc(userDocRef);
+    const lastGenerated = userDoc.data()?.lastGenerated;
+
+    const oneDay = 24 * 60 * 60 * 1000;
+    const canGenerate =
+      !lastGenerated ||
+      new Date().getTime() - lastGenerated.toMillis() > oneDay;
+
+    if (canGenerate) {
+      await generateRecommendations();
+      await setDoc(userDocRef, { lastGenerated: new Date() }, { merge: true });
+    } else {
+      console.log("Wait before generating new recommendations.");
     }
   };
-
-  async function fetchBooks() {
-    if (!isSignedIn) {
-      setError("User not authenticated");
-      console.log("user: ", user);
-      setLoading(false);
-      return [];
-    }
-
-    const userId = user.id;
-
-    try {
-      const librarySnapshot = await getDocs(
-        collection(db, `users/${userId}/library`)
-      );
-      const data = librarySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      const booksWithCovers = await Promise.all(
-        data.map(async (book) => {
-          const cover = await fetchBookCover(book.title, book.author, book.id);
-          return { ...book, cover: cover || "../assets/cover.png" };
-        })
-      );
-
-      return booksWithCovers;
-    } catch (err) {
-      setError("Failed to fetch books");
-      console.error(err);
-      return [];
-    }
-  }
 
   useEffect(() => {
-    async function getBooks() {
-      const data = await fetchBooks();
-      setBooks(data);
-      setLoading(false);
+    if (user) {
+      getRecommendations();
     }
-    if (isLoaded) {
-      getBooks();
-    }
-  }, [isLoaded, isSignedIn]);
+  }, [user]);
 
   const handleCardClick = (index) => {
     setFlipped((prevFlipped) => ({
@@ -128,6 +99,29 @@ const MyLibrary = () => {
       [index]: !prevFlipped[index],
     }));
   };
+
+  const handleDeleteRecommendation = async (recId) => {
+    try {
+      const recRef = doc(db, `users/${user.id}/recommendations`, recId);
+      await deleteDoc(recRef);
+      setRecommendations(recommendations.filter((rec) => rec.id !== recId));
+    } catch (error) {
+      console.error("Error deleting recommendation: ", error);
+    }
+  };
+
+  if (!user) {
+    return (
+      <Container
+        maxWidth="lg"
+        sx={{ mt: "200px", height: "100vh", textAlign: "center" }}
+      >
+        <Typography variant="h3">
+          Please sign in to see your recommendations
+        </Typography>
+      </Container>
+    );
+  }
 
   if (loading) {
     return (
@@ -147,18 +141,11 @@ const MyLibrary = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Container>
-        <Typography variant="body1" color="error">
-          {error}
-        </Typography>
-      </Container>
-    );
-  }
-
   return (
-    <Container maxWidth="100%" sx={{ height: "100%", mb: "3rem" }}>
+    <Container
+      maxWidth="100%"
+      sx={{ marginTop: "200px", height: "100%", mb: "3rem" }}
+    >
       <Typography
         variant="h2"
         sx={{
@@ -168,8 +155,24 @@ const MyLibrary = () => {
           textAlign: "center",
         }}
       >
-        Your Library
+        Your Recommendations
       </Typography>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: "50px" }}>
+        <Button
+          onClick={checkAndGenerateRecommendations}
+          sx={{
+            mb: "20px",
+            color: "#fefae0",
+            bgcolor: "#6b705c",
+            "&:hover": {
+              bgcolor: "#757b65",
+            },
+          }}
+        >
+          Generate Recommendations
+        </Button>
+      </Box>
+
       <Grid
         container
         spacing={4}
@@ -177,9 +180,9 @@ const MyLibrary = () => {
           display: "flex",
         }}
       >
-        {books.length > 0 ? (
+        {recommendations.length > 0 ? (
           <Grid container spacing={2}>
-            {books.map((book, index) => (
+            {recommendations.map((rec, index) => (
               <Grid
                 item
                 xs={12}
@@ -240,8 +243,8 @@ const MyLibrary = () => {
                         >
                           <CardMedia>
                             <img
-                              src={book.cover}
-                              alt={book.title}
+                              src={rec.coverUrl}
+                              alt={rec.title}
                               style={{ width: "200px", height: "auto" }}
                             />
                           </CardMedia>
@@ -269,7 +272,7 @@ const MyLibrary = () => {
                                 color: "#fefae0",
                               }}
                             >
-                              {book.title}
+                              {rec.title}
                             </Typography>
                             <Typography
                               variant="subtitle1"
@@ -278,7 +281,7 @@ const MyLibrary = () => {
                                 color: "#fefae0",
                               }}
                             >
-                              Author: {book.author}
+                              Author: {rec.author}
                             </Typography>
                             <Typography
                               variant="body2"
@@ -287,23 +290,15 @@ const MyLibrary = () => {
                                 color: "#fefae0",
                               }}
                             >
-                              Genre: {book.genre}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: "bold",
-                                color: "#fefae0",
-                              }}
-                            >
-                              Rating: {book.rating}
+                              Genre: {rec.genre}
                             </Typography>
                             <Button
                               onClick={() => {
-                                handleDeleteBook(book.id);
+                                handleDeleteRecommendation(rec.id);
                               }}
                               sx={{
                                 mt: "10px",
+                                fontSize: "10px",
                                 color: "#fff",
                                 bgcolor: "#0496ff",
                                 "&:hover": {
@@ -312,7 +307,7 @@ const MyLibrary = () => {
                                 },
                               }}
                             >
-                              Delete Book
+                              Delete Recommendation
                             </Button>
                           </Box>
                         </div>
@@ -328,7 +323,7 @@ const MyLibrary = () => {
             variant="h5"
             sx={{ color: "#fefae0", textAlign: "center" }}
           >
-            No books found.
+            No recommendations available
           </Typography>
         )}
       </Grid>
@@ -336,4 +331,4 @@ const MyLibrary = () => {
   );
 };
 
-export default MyLibrary;
+export default Recommendations;

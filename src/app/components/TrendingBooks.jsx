@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Slider from "react-slick";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Container } from "@mui/material";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -59,36 +59,38 @@ const TrendingBooks = () => {
   };
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography
-        variant="h3"
-        sx={{
-          color: "#6b705c",
-          fontWeight: "600",
-          display: "flex",
-          justifyContent: "center",
-        }}
-        gutterBottom
-      >
-        Trending Books
-      </Typography>
-      <Slider {...settings}>
-        {books.map((book, index) => (
-          <Box key={index} sx={{ padding: 1 }}>
-            <img
-              src={book.book_image}
-              alt={book.title}
-              style={{
-                width: "100%",
-                height: "350px",
-                objectFit: "cover",
-                borderRadius: "2px",
-              }}
-            />
-          </Box>
-        ))}
-      </Slider>
-    </Box>
+    <Container maxWidth="false" sx={{ height: "100%" }}>
+      <Box sx={{ padding: 4, mb: 3 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            color: "#6b705c",
+            fontWeight: "600",
+            display: "flex",
+            justifyContent: "center",
+          }}
+          gutterBottom
+        >
+          Trending Books
+        </Typography>
+        <Slider {...settings}>
+          {books.map((book, index) => (
+            <Box key={index} sx={{ padding: 1 }}>
+              <img
+                src={book.book_image}
+                alt={book.title}
+                style={{
+                  width: "100%",
+                  height: "350px",
+                  objectFit: "cover",
+                  borderRadius: "2px",
+                }}
+              />
+            </Box>
+          ))}
+        </Slider>
+      </Box>
+    </Container>
   );
 };
 

@@ -20,6 +20,8 @@ const HowItWorks = () => {
         justifyContent: "center",
         alignContent: "center",
         alignItems: "center",
+        height: "100%",
+        mb: "100px",
       }}
     >
       <Typography
@@ -27,6 +29,7 @@ const HowItWorks = () => {
         sx={{
           color: "#6b705c",
           fontWeight: "bold",
+          marginBottom: "20px",
         }}
       >
         How it Works

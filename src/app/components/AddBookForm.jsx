@@ -19,6 +19,17 @@ const AddBookForm = () => {
     { title: "", author: "", genre: "", rating: 0 },
   ]);
 
+  if (!user) {
+    return (
+      <Container
+        maxWidth="lg"
+        sx={{ mt: "200px", height: "100vh", textAlign: "center" }}
+      >
+        <Typography variant="h3">Please sign in to see your library</Typography>
+      </Container>
+    );
+  }
+
   const handleInputChange = (index, e) => {
     const { name, value } = e.target;
     const updatedForms = [...bookForms];
